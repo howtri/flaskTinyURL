@@ -1,17 +1,12 @@
-from flask import Flask, request, jsonify, redirect
+from flask import Flask, request, jsonify, redirect, render_template
 from retrieve import retrieve
 from create import create
 
 app = Flask(__name__)
 
-@app.route('/', methods=['GET'])
-def query_records():
-    name = request.args.get('name')
-    print(name)
-    try:
-        return jsonify('error1')
-    except:
-        return jsonify('error')
+@app.route('/')
+def index():
+    return render_template('start.html')
 
 @app.route('/t/', methods=['GET'])
 def retrieve_long():
@@ -28,5 +23,6 @@ def create():
     short_response = create(long_url)
     print(short_response['body'])
     return short_response
+    # return render_template('yourURLs.html')
 
 app.run()

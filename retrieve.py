@@ -1,4 +1,3 @@
-import json
 import boto3
 
 ddb_table = boto3.resource('dynamodb', region_name = 'us-east-1').Table('tiny-table')
