@@ -24,10 +24,12 @@ def retrieve_long():
 @app.route('/create/', methods=['POST'])
 @jwt_authenticate
 # maybe limit to 10 creations per day
+# add in optional id for url name
 def create():
     long_url = request.args.get('long_url')
     print(long_url)
-    short_response = create(long_url)
+    # look at getting current_user from jwt_authenticate
+    short_response = create(long_url, jwt_authenticate.current_user)
     print(short_response['body'])
     return short_response
     # return render_template('yourURLs.html')
@@ -39,6 +41,7 @@ def sign_up():
 
 @app.route('/login/', methods=['POST'])
 def login():
+    # does this also need to be get_json?
     auth_info = request.authorization
     return login_user(auth_info)
 
