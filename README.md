@@ -1,6 +1,11 @@
 # flaskTinyURL
 
-A simple site that stores a long url mapped to a short url.
-Uses POST to create a new tiny url and GET against any short ids passed to /t/
+A flask API that uses pynamoDB to store long urls mapped to short IDs to be accessed via /t/
+Uses JWT as authentication, mostly for experimentation, currently passed in as URL parameter but needs to be included in the request body
 
-Planning to add more actions and experiment with middleware, possibly JWTs as a start
+Requires:
+AWS Secrets Manager to host
+PynamoDB
+Flask
+
+
