@@ -3,6 +3,7 @@ from string import ascii_letters, digits
 from random import choice, randint
 from datetime import datetime
 from pynamo import Url
+from flask import jsonify
 
 string_format = ascii_letters + digits
 ddb_table = boto3.resource('dynamodb', region_name='us-east-1').Table('tiny-table')
@@ -25,10 +26,10 @@ def create(long_url, current_user, url_id=None):
     new_tiny.save()
 
     base_url = 'www.localhost:5000/t/'
-    return {
+    return jsonify({
         "statusCode": 200,
         "body": base_url + url_id
-    }
+    })
 
 def check_id(short_id):
     # does this query the global index?
@@ -41,6 +42,39 @@ def generate_id(short_id):
     if short_id is None:
         short_id = "".join(choice(string_format) for x in range(4))
         print(f'{short_id} generated')
-    print('Checking ' + short_id)
     response = check_id(short_id)
     return response
+
+def retrieve(short_id):
+    """
+    Accepts the tiny url id and uses get_item (future pynamodb) to retrieve the long url
+    returns long_url
+    """
+    try:
+        url = Url.get(short_id)
+
+        url.update(actions=[
+            url.hits.set(url.hits + 1),
+            url.lastHit.set(datetime.utcnow())
+        ])
+
+        return jsonify({
+            "statusCode": 301,
+            "location": url.longURL
+        })
+
+    except:
+        return jsonify({"Error", "No Such ID"})
+
+def delete(short_id):
+    """
+    Accepts the tiny url id and uses get_item (future pynamodb) to retrieve the long url
+    returns long_url
+    """
+    try:
+        url = Url.get(short_id)
+    except:
+        return jsonify({"Error", "No Such ID"})
+
+    url.delete()
+    return jsonify({"statusCode": 301,})

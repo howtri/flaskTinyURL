@@ -3,7 +3,7 @@ import boto3
 import datetime
 
 from functools import wraps
-from flask import request, jsonify
+from flask import request, jsonify, make_response
 from werkzeug.security import generate_password_hash, check_password_hash
 from pynamo import User
 
@@ -14,16 +14,24 @@ def jwt_authenticate(func):
     """Wrapper to determine if valid jwt"""
     @wraps(func)
     def inner(*args, **kwargs):
-        token = request.args.get('token')  # http://127.0.0.1:5000/route?token=alshfjfjdklsfj89549834ur
+        token = None
+
+        if 'x-access-token' in request.headers:
+            token = request.headers['x-access-token']
+
         if not token:
             return jsonify({'message': 'Token is missing!'}), 401
+
         try:
             data = jwt.decode(token, jwt_get_secret())
-            current_user = data['userID']
+            current_user = User.get(data['username'])
         except:
             return jsonify({'message': 'Token is invalid!'}), 401
+
         return func(current_user, *args, **kwargs)
-    return inner()
+
+    return inner
+
 
 
 def create_user(data):
@@ -53,7 +61,9 @@ def login_user(auth):
         token = jwt.encode({'username': user.username, 'exp': datetime.datetime.utcnow() +
                             datetime.timedelta(minutes=10)}, jwt_get_secret())
 
-        return jsonify({'token': token.decode('UTF-8')})
+        resp = make_response("Auth")  # render template
+        resp.headers['x-access-token'] = token
+        return resp
 
     # easier for troubleshooting but it should be changed so they don't know if user or pass is wrong
     return jsonify({'message': 'Login failed, invalid password'}), 401
